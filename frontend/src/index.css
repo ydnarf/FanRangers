@@ -1,0 +1,122 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+body {
+  background-color: #07080F;
+  color: #E8DAC0;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Hero content reveal — curtain rises once */
+@keyframes hero-rise {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+
+.hero-rise {
+  animation: hero-rise 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-rise { animation: none; }
+}
+
+/* ── FanRangers Logo ─────────────────────────────────────────── */
+.fr-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  line-height: 1;
+}
+
+.fr-text {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  background: linear-gradient(to right, #E8430A, #F5A623);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: inline-block;
+  animation: fr-text-flash 2.5s ease-in-out 1 forwards;
+}
+
+.fr-bolt-wrap {
+  position: relative;
+  width: 11px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.fr-burst {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  background: radial-gradient(
+    circle,
+    rgba(245, 166, 35, 0.95) 0%,
+    rgba(232, 67, 10, 0.55) 45%,
+    transparent 70%
+  );
+  animation: fr-burst 2.5s ease-out 1 forwards;
+  pointer-events: none;
+}
+
+.fr-bolt {
+  width: 100%;
+  height: 100%;
+  display: block;
+  filter:
+    drop-shadow(0 0 3px rgba(245, 166, 35, 1))
+    drop-shadow(0 0 9px rgba(232, 67, 10, 0.75));
+  animation: fr-bolt-fall 2.5s ease-in 1 forwards;
+}
+
+@keyframes fr-bolt-fall {
+  0%   { clip-path: inset(0 0 100% 0); opacity: 1; }
+  18%  { clip-path: inset(0 0 0% 0);   opacity: 1; }
+  24%  { opacity: 0.08; }
+  28%  { opacity: 1;    }
+  33%  { opacity: 0.12; }
+  38%  { opacity: 1;    }
+  100% { clip-path: inset(0 0 0% 0);   opacity: 1; }
+}
+
+@keyframes fr-burst {
+  0%,  17% { opacity: 0; transform: translate(-50%, -50%) scale(0);   }
+  22%       { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+  40%       { opacity: 0; transform: translate(-50%, -50%) scale(2.6); }
+  100%      { opacity: 0; transform: translate(-50%, -50%) scale(0);   }
+}
+
+@keyframes fr-text-flash {
+  0%,  16% { filter: brightness(1); }
+  22%      { filter: brightness(1.75) drop-shadow(0 0 7px rgba(245, 166, 35, 0.85)); }
+  38%      { filter: brightness(1); }
+  100%     { filter: brightness(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fr-bolt  { animation: none !important; clip-path: none !important; opacity: 0.88; }
+  .fr-burst { animation: none !important; opacity: 0 !important; }
+  .fr-text  { animation: none !important; filter: none !important; }
+}

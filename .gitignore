@@ -1,0 +1,37 @@
+# Dependencias
+node_modules/
+
+# Variables de entorno (NUNCA versionar — contienen secretos)
+.env
+*.env
+.env.local
+.env.*.local
+!.env.example
+
+# Base de datos SQLite (desarrollo)
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+prisma/dev.db
+prisma/*.db
+
+# Archivos subidos por usuarios
+uploads/
+
+# Builds / artefactos
+dist/
+build/
+*.tsbuildinfo
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Sistema operativo / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
