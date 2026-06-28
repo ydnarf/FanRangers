@@ -8,7 +8,10 @@ import {
   getVideo,
   getEpisodeDownloadUrl,
   getVideoDownloadUrl,
+  getThumbnailUrl,
 } from '../lib/api';
+import { useSEO } from '../hooks/useSEO';
+import { JsonLd } from '../components/JsonLd';
 import type { Episode, Video } from '../types';
 
 interface PlayerPageProps {
@@ -33,6 +36,55 @@ export default function PlayerPage({ type }: PlayerPageProps) {
     loading: true,
     error: null,
   });
+
+  const { media } = state;
+  const mediaTitle = media
+    ? media.kind === 'episode'
+      ? `Ep. ${media.data.number}: ${media.data.title}`
+      : media.data.title
+    : undefined;
+  const mediaSynopsis = media?.data.synopsis ?? undefined;
+  const mediaThumbnail = media?.data.thumbnail
+    ? getThumbnailUrl(media.data.thumbnail)
+    : undefined;
+
+  useSEO({
+    title: mediaTitle,
+    description: mediaSynopsis,
+    image: mediaThumbnail,
+    ogType: 'video.other',
+  });
+
+  const mediaSchema: Record<string, unknown> | null = media
+    ? media.kind === 'episode'
+      ? {
+          '@context': 'https://schema.org',
+          '@type': 'TVEpisode',
+          name: mediaTitle,
+          ...(mediaSynopsis ? { description: mediaSynopsis } : {}),
+          episodeNumber: media.data.number,
+          ...(mediaThumbnail ? { thumbnailUrl: mediaThumbnail } : {}),
+          ...(media.data.season
+            ? {
+                partOfSeason: {
+                  '@type': 'TVSeason',
+                  seasonNumber: media.data.season.number,
+                  partOfSeries: {
+                    '@type': 'TVSeries',
+                    name: media.data.season.collection.title,
+                  },
+                },
+              }
+            : {}),
+        }
+      : {
+          '@context': 'https://schema.org',
+          '@type': 'VideoObject',
+          name: mediaTitle,
+          ...(mediaSynopsis ? { description: mediaSynopsis } : {}),
+          ...(mediaThumbnail ? { thumbnailUrl: mediaThumbnail } : {}),
+        }
+    : null;
 
   useEffect(() => {
     if (!id) return;
@@ -64,10 +116,11 @@ export default function PlayerPage({ type }: PlayerPageProps) {
     };
   }, [id, type]);
 
-  const { media, loading, error } = state;
+  const { loading, error } = state;
 
   return (
     <main className="min-h-screen pt-20 pb-16">
+      {mediaSchema && <JsonLd schema={mediaSchema} />}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm text-[#8085A0] mb-6 flex-wrap" aria-label="Ruta de navegacion">

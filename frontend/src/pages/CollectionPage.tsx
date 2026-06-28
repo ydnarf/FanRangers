@@ -4,6 +4,8 @@ import ContentRow from '../components/ContentRow';
 import ContentCard from '../components/ContentCard';
 import { SkeletonRow } from '../components/SkeletonCard';
 import { getCollection, getThumbnailUrl } from '../lib/api';
+import { useSEO } from '../hooks/useSEO';
+import { JsonLd } from '../components/JsonLd';
 import type { Collection, ContentCardItem } from '../types';
 
 function episodeToCardItem(episode: {
@@ -48,6 +50,26 @@ export default function CollectionPage() {
     error: null,
   });
 
+  const { collection } = state;
+  const coverUrl = collection?.coverImage ? getThumbnailUrl(collection.coverImage) : undefined;
+
+  useSEO({
+    title: collection?.title,
+    description: collection?.description,
+    image: coverUrl,
+    ogType: collection?.type === 'SERIES' ? 'video.tv_show' : 'video.other',
+  });
+
+  const collectionSchema = collection
+    ? ({
+        '@context': 'https://schema.org',
+        '@type': collection.type === 'SERIES' ? 'TVSeries' : 'ItemList',
+        name: collection.title,
+        description: collection.description,
+        ...(coverUrl ? { image: coverUrl } : {}),
+      } as Record<string, unknown>)
+    : null;
+
   useEffect(() => {
     if (!id) return;
     let cancelled = false;
@@ -70,10 +92,11 @@ export default function CollectionPage() {
     };
   }, [id]);
 
-  const { collection, loading, error } = state;
+  const { loading, error } = state;
 
   return (
     <main className="min-h-screen pt-20">
+      {collectionSchema && <JsonLd schema={collectionSchema} />}
       <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm text-[#a3a3a3] mb-6" aria-label="Ruta de navegacion">

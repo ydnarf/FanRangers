@@ -4,6 +4,8 @@ import ContentRow from '../components/ContentRow';
 import AdSlot from '../components/AdSlot';
 import { SkeletonHero, SkeletonRow } from '../components/SkeletonCard';
 import { getCollections, getThumbnailUrl } from '../lib/api';
+import { useSEO } from '../hooks/useSEO';
+import { JsonLd } from '../components/JsonLd';
 import type { Collection, ContentCardItem } from '../types';
 
 const HERO_IMAGE = import.meta.env.VITE_HERO_IMAGE as string | undefined;
@@ -25,7 +27,26 @@ interface HomeState {
   error: string | null;
 }
 
+const WEBSITE_SCHEMA = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'FanRangers',
+  url: 'https://fanrangers.com',
+  description:
+    'Plataforma de streaming de contenido legal, dominio público y Creative Commons',
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: 'https://fanrangers.com/catalogo',
+    'query-input': 'required name=search_term_string',
+  },
+};
+
 export default function HomePage() {
+  useSEO({
+    description:
+      'Descubre series, películas y videos de dominio público y Creative Commons. Streaming legal y gratuito en FanRangers.',
+  });
+
   const [state, setState] = useState<HomeState>({
     collections: [],
     loading: true,
@@ -70,6 +91,7 @@ export default function HomePage() {
 
   return (
     <main>
+      <JsonLd schema={WEBSITE_SCHEMA} />
       {/* Hero */}
       {loading ? (
         <SkeletonHero />

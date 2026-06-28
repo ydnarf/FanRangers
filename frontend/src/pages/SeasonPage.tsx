@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import ContentCard from '../components/ContentCard';
 import SkeletonCard from '../components/SkeletonCard';
 import { getSeason, getThumbnailUrl } from '../lib/api';
+import { useSEO } from '../hooks/useSEO';
 import type { Season, ContentCardItem } from '../types';
 
 function episodeToCardItem(episode: {
@@ -34,6 +35,21 @@ export default function SeasonPage() {
     error: null,
   });
 
+  const { season } = state;
+  const displayLabel: string = season
+    ? season.title
+      ? `Temporada ${season.number}: ${season.title}`
+      : `Temporada ${season.number}`
+    : 'Temporada';
+  const seoTitle = season?.collection
+    ? `${displayLabel} — ${season.collection.title}`
+    : displayLabel;
+
+  useSEO({
+    title: season ? seoTitle : undefined,
+    description: season?.description ?? undefined,
+  });
+
   useEffect(() => {
     if (!id) return;
     let cancelled = false;
@@ -56,13 +72,7 @@ export default function SeasonPage() {
     };
   }, [id]);
 
-  const { season, loading, error } = state;
-
-  const seasonLabel = season
-    ? season.title
-      ? `Temporada ${season.number}: ${season.title}`
-      : `Temporada ${season.number}`
-    : 'Temporada';
+  const { loading, error } = state;
 
   return (
     <main className="min-h-screen pt-20">
@@ -84,10 +94,10 @@ export default function SeasonPage() {
                 {season.collection.title}
               </Link>
               <span aria-hidden="true">&rsaquo;</span>
-              <span className="text-[#f5f5f5]">{seasonLabel}</span>
+              <span className="text-[#f5f5f5]">{displayLabel}</span>
             </>
           ) : (
-            <span className="text-[#f5f5f5]">{seasonLabel}</span>
+            <span className="text-[#f5f5f5]">{displayLabel}</span>
           )}
         </nav>
 
@@ -98,14 +108,14 @@ export default function SeasonPage() {
         ) : !season ? (
           <NotFound />
         ) : (
-          <SeasonContent season={season} seasonLabel={seasonLabel} />
+          <SeasonContent season={season} displayLabel={displayLabel} />
         )}
       </div>
     </main>
   );
 }
 
-function SeasonContent({ season, seasonLabel }: { season: Season; seasonLabel: string }) {
+function SeasonContent({ season, displayLabel }: { season: Season; displayLabel: string }) {
   const episodes = season.episodes ?? [];
 
   return (
@@ -113,7 +123,7 @@ function SeasonContent({ season, seasonLabel }: { season: Season; seasonLabel: s
       {/* Season header */}
       <header className="mb-8">
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white mb-3">
-          {seasonLabel}
+          {displayLabel}
         </h1>
         {season.description && (
           <p className="text-[#a3a3a3] text-sm leading-relaxed max-w-2xl">
@@ -137,7 +147,7 @@ function SeasonContent({ season, seasonLabel }: { season: Season; seasonLabel: s
         <div
           className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 pb-16"
           role="list"
-          aria-label={`Episodios de ${seasonLabel}`}
+          aria-label={`Episodios de ${displayLabel}`}
         >
           {episodes.map((episode) => (
             <div key={episode.id} role="listitem">

@@ -1,4 +1,5 @@
 import { lazy, Suspense, Component, type ReactNode, type ErrorInfo } from 'react';
+import { useSEO } from './hooks/useSEO';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -238,6 +239,7 @@ export default function App() {
 }
 
 function NotFoundPage() {
+  useSEO({ title: 'Página no encontrada', noIndex: true });
   return (
     <main className="min-h-screen flex flex-col items-center justify-center text-center px-4 pt-20">
       <span className="text-6xl mb-6" aria-hidden="true">&#128214;</span>

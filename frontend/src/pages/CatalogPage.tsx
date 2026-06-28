@@ -4,6 +4,7 @@ import ContentCard from '../components/ContentCard';
 import SkeletonCard from '../components/SkeletonCard';
 import AdSlot from '../components/AdSlot';
 import { getCollections, getVideos, getThumbnailUrl } from '../lib/api';
+import { useSEO } from '../hooks/useSEO';
 import type { Collection, Video, ContentCardItem } from '../types';
 
 type FilterType = 'ALL' | 'SERIES' | 'FILMS' | 'VIDEOS';
@@ -43,6 +44,12 @@ const FILTER_LABELS: Record<FilterType, string> = {
 };
 
 export default function CatalogPage() {
+  useSEO({
+    title: 'Catálogo completo',
+    description:
+      'Explora el catálogo completo de FanRangers: series, películas y videos de dominio público y Creative Commons. Todo el contenido es legal y gratuito.',
+  });
+
   const [state, setState] = useState<PageState>({
     collections: [],
     videos: [],
