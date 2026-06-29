@@ -1,5 +1,6 @@
 import multer, { FileFilterCallback } from 'multer';
 import path from 'path';
+import fs from 'fs';
 import { Request } from 'express';
 import crypto from 'crypto';
 
@@ -41,6 +42,10 @@ const EXT_MAP: Record<string, string> = {
 };
 
 export function createUploader(type: UploadType) {
+  // Ensure the target directory exists. On ephemeral hosts (e.g. Render's free
+  // tier) the uploads/ tree is wiped on each deploy, so create it on demand.
+  fs.mkdirSync(UPLOAD_DIRS[type], { recursive: true });
+
   const storage = multer.diskStorage({
     destination: (_req, _file, cb) => cb(null, UPLOAD_DIRS[type]),
     filename: (_req, file, cb) => {

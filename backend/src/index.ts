@@ -62,13 +62,24 @@ app.set('trust proxy', Number(process.env['TRUST_PROXY'] ?? 0));
 const allowedOrigins: string[] = ['http://localhost:5173'];
 
 const envOrigin = process.env['ALLOWED_ORIGIN'];
-if (envOrigin && envOrigin !== 'http://localhost:5173') {
-  allowedOrigins.push(envOrigin);
+if (envOrigin) {
+  // Accept either a full URL or a bare hostname (Render's `fromService host`
+  // yields a hostname without scheme). Browsers send a full origin with scheme,
+  // so normalize to https:// when the scheme is missing.
+  const normalizedOrigin = /^https?:\/\//.test(envOrigin) ? envOrigin : `https://${envOrigin}`;
+  if (!allowedOrigins.includes(normalizedOrigin)) {
+    allowedOrigins.push(normalizedOrigin);
+  }
 }
 
 // ─── Security middleware ─────────────────────────────────────────────────────
 
-app.use(helmet());
+// CSP is disabled because this service also serves the SPA's HTML, which embeds
+// third-party resources (YouTube iframes, Google Fonts, Ko-fi, external thumbnail
+// URLs). The rest of helmet's protections (HSTS, X-Content-Type-Options,
+// frameguard, COOP/CORP, etc.) stay enabled. A tailored CSP is a recommended
+// follow-up — see DEPLOY.md.
+app.use(helmet({ contentSecurityPolicy: false }));
 
 app.use(
   cors({
@@ -82,12 +93,12 @@ app.use(
         err.statusCode = 403;
         return err;
       };
-      // In production, require an Origin header to block direct API scrapers
+      // Requests without an Origin header are allowed. In this single-service
+      // deploy the backend serves the SPA from the same origin, so browsers
+      // legitimately omit Origin on top-level navigations, static asset loads,
+      // same-origin GET fetches, and Render's health checks. Cross-origin
+      // requests (which always carry an Origin) are still allowlisted below.
       if (!origin) {
-        if (IS_PROD) {
-          callback(forbidden('CORS: origin header required'));
-          return;
-        }
         callback(null, true);
         return;
       }
@@ -231,15 +242,40 @@ app.get('/health', (_req: Request, res: Response) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// ─── Serve the compiled frontend (single-service deploy) ─────────────────────
+// In production the backend serves the React build so the whole app runs as ONE
+// Render web service. The build step copies frontend/dist into backend/public.
+// Override the location with FRONTEND_DIST if needed.
+
+const frontendDist = process.env['FRONTEND_DIST']
+  ? path.resolve(process.env['FRONTEND_DIST'])
+  : path.resolve(__dirname, '..', 'public');
+
+if (fs.existsSync(frontendDist)) {
+  app.use(express.static(frontendDist));
+
+  // SPA fallback: any GET that is not an API/thumbnail/health route returns
+  // index.html so client-side routing (React Router) works on deep links/reloads.
+  app.get(/^(?!\/(?:api|thumbnails|health)\b).*/, (_req: Request, res: Response) => {
+    res.sendFile(path.join(frontendDist, 'index.html'));
+  });
+
+  console.log(`Serving frontend from ${frontendDist}`);
+} else {
+  console.warn(`[WARNING] Frontend build not found at ${frontendDist}; running API-only.`);
+}
+
 // ─── 404 + error handlers (must be last) ─────────────────────────────────────
 
 app.use(notFoundHandler);
 app.use(errorHandler);
 
 // ─── Start server ─────────────────────────────────────────────────────────────
+// Bind to 0.0.0.0 so the server is reachable inside Render's container (and any
+// other host that routes external traffic to a non-loopback interface).
 
-app.listen(PORT, () => {
-  console.log(`FanRangers API running on http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`FanRangers server running on port ${PORT} (host 0.0.0.0)`);
   console.log(`Allowed CORS origins: ${allowedOrigins.join(', ')}`);
 });
 

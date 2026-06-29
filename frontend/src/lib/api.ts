@@ -222,7 +222,7 @@ export function adminCreateEpisode(data: {
   thumbnail?: string;
   duration?: number;
   youtubeId?: string;
-  downloadLink?: string;
+  downloadLink?: string | null;
 }): Promise<Episode> {
   return authFetch<Episode>('/api/admin/episodes', {
     method: 'POST',
@@ -232,7 +232,7 @@ export function adminCreateEpisode(data: {
 
 export function adminUpdateEpisode(
   id: string,
-  data: Partial<Episode & { seasonId: string; youtubeId?: string; downloadLink?: string }>
+  data: Partial<Episode & { seasonId: string; youtubeId?: string; downloadLink?: string | null }>
 ): Promise<Episode> {
   return authFetch<Episode>(`/api/admin/episodes/${id}`, {
     method: 'PUT',
@@ -256,9 +256,9 @@ export function adminCreateVideo(data: {
   thumbnail?: string;
   duration?: number;
   featured?: boolean;
-  collectionId?: string;
+  collectionId?: string | null;
   youtubeId?: string;
-  downloadLink?: string;
+  downloadLink?: string | null;
 }): Promise<Video> {
   return authFetch<Video>('/api/admin/videos', {
     method: 'POST',
@@ -268,7 +268,7 @@ export function adminCreateVideo(data: {
 
 export function adminUpdateVideo(
   id: string,
-  data: Partial<Video & { youtubeId?: string; downloadLink?: string; collectionId?: string }>
+  data: Partial<Video & { youtubeId?: string; downloadLink?: string | null; collectionId?: string | null }>
 ): Promise<Video> {
   return authFetch<Video>(`/api/admin/videos/${id}`, {
     method: 'PUT',

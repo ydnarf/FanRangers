@@ -24,6 +24,9 @@ dist/
 build/
 *.tsbuildinfo
 
+# Build del frontend copiado al backend para el servicio único de Render
+backend/public/
+
 # Logs
 *.log
 npm-debug.log*

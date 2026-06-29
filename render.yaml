@@ -1,0 +1,62 @@
+# Render Blueprint — FanRangers
+# Despliega la plataforma como UN solo servicio web (el backend Express sirve la
+# API y el build estático del frontend) + una base de datos PostgreSQL gratis.
+# Docs: https://render.com/docs/blueprint-spec
+
+databases:
+  - name: fanrangers-db
+    plan: free
+    databaseName: fanrangers
+    # Render gestiona usuario/contraseña/host automáticamente.
+
+services:
+  - type: web
+    name: fanrangers
+    runtime: node
+    plan: free
+    region: oregon
+    rootDir: backend
+    # 1) Instala y compila el backend (genera el cliente Prisma + tsc).
+    # 2) Instala y compila el frontend (Vite).
+    # 3) Copia el build del frontend a backend/public para servirlo desde el backend.
+    buildCommand: >-
+      npm ci &&
+      npm run build &&
+      cd ../frontend && npm ci && npm run build &&
+      cd ../backend && rm -rf public && cp -r ../frontend/dist public
+    # Aplica migraciones pendientes y arranca el servidor.
+    startCommand: npm run start:prod
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Conexión a la BD: inyectada automáticamente desde la base de datos de arriba.
+      - key: DATABASE_URL
+        fromDatabase:
+          name: fanrangers-db
+          property: connectionString
+      # Secreto JWT: generado automáticamente por Render (>=32 chars).
+      - key: JWT_SECRET
+        generateValue: true
+      # Cookie de sesión segura (HTTPS) — obligatorio en producción.
+      - key: COOKIE_SECURE
+        value: "true"
+      # Render pone 1 proxy inverso delante del servicio.
+      - key: TRUST_PROXY
+        value: "1"
+      # Servicio único => mismo origen => CORS apunta a la propia URL del servicio.
+      - key: ALLOWED_ORIGIN
+        fromService:
+          type: web
+          name: fanrangers
+          property: host
+      # --- Rellenar a mano en el panel de Render (Environment) ---
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      # Acortador de URLs para descargas (opcional). Dejar vacío para desactivar.
+      - key: SHORTENER_SERVICE
+        value: tinyurl
+      - key: SHORTENER_API_KEY
+        sync: false
