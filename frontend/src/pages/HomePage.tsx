@@ -103,14 +103,7 @@ export default function HomePage() {
           ctaLabel="Ver ahora"
           ctaHref={`/collection/${heroCollection.id}`}
         />
-      ) : (
-        <HeroBanner
-          title="Bienvenido a FanRangers"
-          description="Tu plataforma de streaming de contenido legal, dominio publico y Creative Commons."
-          ctaLabel="Explorar catalogo"
-          ctaHref="/catalogo"
-        />
-      )}
+      ) : null}
 
       {/* AdSense — visible para visitantes y usuarios no-premium, oculto para premium */}
       <AdSlot id="adsense-home-banner" className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 mb-6" />
