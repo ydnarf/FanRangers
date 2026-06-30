@@ -24,6 +24,7 @@ import {
 } from './routes/admin/index';
 import { requireAuth, requireAdmin } from './middleware/auth';
 import { errorHandler, notFoundHandler } from './middleware/errors';
+import { ensureAdminUser } from './lib/bootstrap';
 
 // ─── App setup ──────────────────────────────────────────────────────────────
 
@@ -277,6 +278,8 @@ app.use(errorHandler);
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`FanRangers server running on port ${PORT} (host 0.0.0.0)`);
   console.log(`Allowed CORS origins: ${allowedOrigins.join(', ')}`);
+  // Create the initial admin user if it doesn't exist yet (idempotent).
+  void ensureAdminUser();
 });
 
 export default app;
