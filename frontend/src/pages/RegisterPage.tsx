@@ -45,12 +45,8 @@ export default function RegisterPage() {
   return (
     <main className="min-h-screen flex flex-col items-center justify-center px-4 pt-16">
       <div className="w-full max-w-sm">
-        {/* Logo */}
         <div className="text-center mb-8">
-          <span className="font-display text-2xl font-bold text-[#E8430A]">
-            {import.meta.env.VITE_APP_NAME ?? 'FanRangers'}
-          </span>
-          <h1 className="text-xl font-semibold text-[#E8DAC0] mt-2">Crear cuenta</h1>
+          <h1 className="text-xl font-semibold text-[#E8DAC0]">Crear cuenta</h1>
           <p className="text-sm text-[#8085A0] mt-1">Registrate para empezar a ver contenido</p>
         </div>
 
