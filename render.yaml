@@ -46,12 +46,13 @@ services:
       # Render pone 1 proxy inverso delante del servicio.
       - key: TRUST_PROXY
         value: "1"
-      # Servicio único => mismo origen => CORS apunta a la propia URL del servicio.
+      # Servicio único => mismo origen => CORS = la URL pública del servicio.
+      # NOTA: `fromService host` devuelve solo el NOMBRE del servicio (p.ej.
+      # "fanrangers"), no el dominio completo, lo que rompe CORS. Por eso se fija
+      # aquí la URL pública. Si cambias el nombre del servicio o usas un dominio
+      # propio, actualiza este valor.
       - key: ALLOWED_ORIGIN
-        fromService:
-          type: web
-          name: fanrangers
-          property: host
+        value: https://fanrangers.onrender.com
       # --- Rellenar a mano en el panel de Render (Environment) ---
       - key: ADMIN_EMAIL
         sync: false
