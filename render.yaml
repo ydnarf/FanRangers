@@ -19,10 +19,12 @@ services:
     # 1) Instala y compila el backend (genera el cliente Prisma + tsc).
     # 2) Instala y compila el frontend (Vite).
     # 3) Copia el build del frontend a backend/public para servirlo desde el backend.
+    # --include=dev fuerza instalar devDependencies (typescript, @types/*, vite,
+    # prisma) aunque NODE_ENV=production, porque son necesarias para compilar.
     buildCommand: >-
-      npm ci &&
+      npm ci --include=dev &&
       npm run build &&
-      cd ../frontend && npm ci && npm run build &&
+      cd ../frontend && npm ci --include=dev && npm run build &&
       cd ../backend && rm -rf public && cp -r ../frontend/dist public
     # Aplica migraciones pendientes y arranca el servidor.
     startCommand: npm run start:prod
