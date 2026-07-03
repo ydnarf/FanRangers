@@ -80,7 +80,15 @@ if (envOrigin) {
 // URLs). The rest of helmet's protections (HSTS, X-Content-Type-Options,
 // frameguard, COOP/CORP, etc.) stay enabled. A tailored CSP is a recommended
 // follow-up — see DEPLOY.md.
-app.use(helmet({ contentSecurityPolicy: false }));
+// Referrer-Policy: helmet's default is `no-referrer`, but YouTube embeds now
+// require a valid Referer header (error 153, embedder.identity.missing.referrer),
+// so we relax it to the browser default `strict-origin-when-cross-origin`.
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+  }),
+);
 
 app.use(
   cors({

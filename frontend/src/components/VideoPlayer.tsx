@@ -1,15 +1,22 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { getFavorites, addFavorite, removeFavorite, saveProgress, getItemProgress } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
+import {
+  youtubeEmbedUrl,
+  YOUTUBE_IFRAME_ALLOW,
+  YOUTUBE_IFRAME_REFERRER_POLICY,
+} from '../lib/youtube';
 
 // Minimal YT IFrame API types
 declare global {
   interface Window {
     YT: {
+      // When `el` is an existing <iframe>, the video and player params come
+      // from its src URL and `videoId`/`playerVars` are omitted.
       Player: new (
         el: HTMLElement,
         opts: {
-          videoId: string;
+          videoId?: string;
           playerVars?: Record<string, unknown>;
           events?: {
             onReady?: (e: { target: YTPlayer }) => void;
@@ -66,7 +73,7 @@ export default function VideoPlayer({
 }: VideoPlayerProps) {
   const { isAuthenticated } = useAuth();
   const containerRef = useRef<HTMLDivElement>(null);
-  const playerParentRef = useRef<HTMLElement | null>(null);
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const playerRef = useRef<YTPlayer | null>(null);
   const progressTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastSavedTimeRef = useRef<number>(0);
@@ -137,18 +144,27 @@ export default function VideoPlayer({
     loadYTApi(() => {
       if (destroyed || !containerRef.current) return;
 
-      // Save the parent BEFORE YouTube replaces containerRef.current with an <iframe>.
-      // After YT.Player() runs, containerRef.current.parentNode becomes null.
-      // We need it in cleanup to re-attach the div so React can removeChild cleanly.
-      playerParentRef.current = containerRef.current.parentElement;
+      // Build the <iframe> ourselves instead of letting YT.Player create it:
+      // YouTube now requires a valid Referer on embeds (error 153), and the
+      // referrerpolicy/allow attributes must be set BEFORE the embed loads.
+      // The youtube-nocookie host reduces cookie/referrer-related failures.
+      const iframe = document.createElement('iframe');
+      iframe.src = youtubeEmbedUrl(youtubeId, {
+        enablejsapi: '1',
+        rel: '0',
+        modestbranding: '1',
+        origin: window.location.origin,
+      });
+      iframe.className = 'w-full h-full';
+      iframe.title = title;
+      iframe.setAttribute('allow', YOUTUBE_IFRAME_ALLOW);
+      iframe.setAttribute('referrerpolicy', YOUTUBE_IFRAME_REFERRER_POLICY);
+      iframe.setAttribute('allowfullscreen', '');
+      iframe.setAttribute('frameborder', '0');
+      containerRef.current.appendChild(iframe);
+      iframeRef.current = iframe;
 
-      playerRef.current = new window.YT.Player(containerRef.current, {
-        videoId: youtubeId,
-        playerVars: {
-          rel: 0,
-          modestbranding: 1,
-          enablejsapi: 1,
-        },
+      playerRef.current = new window.YT.Player(iframe, {
         events: {
           onReady: (e) => {
             playerReadyRef.current = true;
@@ -187,15 +203,15 @@ export default function VideoPlayer({
       flushProgressRef.current();
       playerRef.current?.destroy();
       playerRef.current = null;
-      // After player.destroy() removes the <iframe>, containerRef.current is
-      // detached from the DOM. Re-insert it so React can call removeChild on a
-      // connected node without throwing NotFoundError.
-      if (containerRef.current && playerParentRef.current && !containerRef.current.isConnected) {
-        playerParentRef.current.appendChild(containerRef.current);
+      // The iframe lives inside the React-owned container div (which YT never
+      // replaces, since we hand it an existing iframe). destroy() removes the
+      // iframe; if the player never initialized, remove it ourselves.
+      if (iframeRef.current?.isConnected) {
+        iframeRef.current.remove();
       }
-      playerParentRef.current = null;
+      iframeRef.current = null;
     };
-  }, [youtubeId]);
+  }, [youtubeId, title]);
 
   // Reset saved time ref when content changes
   useEffect(() => {

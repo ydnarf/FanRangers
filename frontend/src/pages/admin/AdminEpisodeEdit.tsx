@@ -7,6 +7,12 @@ import {
   getThumbnailUrl,
 } from '../../lib/api';
 import FileUploadButton from '../../components/FileUploadButton';
+import {
+  extractYouTubeId,
+  youtubeEmbedUrl,
+  YOUTUBE_IFRAME_ALLOW,
+  YOUTUBE_IFRAME_REFERRER_POLICY,
+} from '../../lib/youtube';
 
 const INPUT_CLASS =
   'w-full bg-[#0d0d0d] border border-[#2a2a2a] text-[#f5f5f5] rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-red-600/50 transition-colors';
@@ -20,15 +26,6 @@ interface EpisodeForm {
   duration: string;
   youtubeUrl: string;
   downloadLink: string;
-}
-
-function extractYouTubeId(input: string): string | null {
-  const trimmed = input.trim();
-  if (/^[a-zA-Z0-9_-]{1,20}$/.test(trimmed)) return trimmed;
-  const match = trimmed.match(
-    /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
-  );
-  return match?.[1] ?? null;
 }
 
 export default function AdminEpisodeEdit() {
@@ -227,8 +224,10 @@ export default function AdminEpisodeEdit() {
               <iframe
                 width="100%"
                 className="aspect-video rounded-lg mt-2"
-                src={`https://www.youtube.com/embed/${extractedYouTubeId}`}
+                src={youtubeEmbedUrl(extractedYouTubeId)}
                 title="Preview"
+                allow={YOUTUBE_IFRAME_ALLOW}
+                referrerPolicy={YOUTUBE_IFRAME_REFERRER_POLICY}
                 allowFullScreen
               />
             </div>
