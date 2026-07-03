@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import FanRangersLogo from './FanRangersLogo';
 
@@ -9,7 +9,12 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const { user, isAdmin, isPremium, loading, logout } = useAuth();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const userMenuRef = useRef<HTMLDivElement>(null);
+
+  // Solo la home tiene hero a pantalla completa detrás del header;
+  // en el resto de páginas el header lleva siempre fondo sólido.
+  const hasHero = pathname === '/';
 
   useEffect(() => {
     const handleScroll = () => {
@@ -46,9 +51,9 @@ export default function Navbar() {
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-colors duration-300 ${
-        scrolled || menuOpen
+        scrolled || menuOpen || !hasHero
           ? 'bg-[#07080F]/95 backdrop-blur-sm border-b border-[#1E2840]'
-          : 'bg-gradient-to-b from-black/70 to-transparent'
+          : 'bg-gradient-to-b from-black/60 to-transparent'
       }`}
     >
       <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">

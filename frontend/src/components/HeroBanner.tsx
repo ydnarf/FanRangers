@@ -34,9 +34,6 @@ export default function HeroBanner({
         <div className="absolute inset-0 bg-gradient-to-br from-[#1A1030] via-[#07080F] to-[#07080F]" />
       )}
 
-      {/* Cinematic top letterbox bar */}
-      <div className="absolute top-0 left-0 right-0 h-[3.5vh] bg-black z-20 pointer-events-none" aria-hidden="true" />
-
       {/* Dark overlays */}
       <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/50 to-transparent" />
       {/* Bottom fade — blends hero into page background with no hard edge */}
