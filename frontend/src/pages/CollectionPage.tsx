@@ -4,6 +4,7 @@ import ContentRow from '../components/ContentRow';
 import ContentCard from '../components/ContentCard';
 import { SkeletonRow } from '../components/SkeletonCard';
 import { getCollection, getThumbnailUrl } from '../lib/api';
+import { youtubeThumbnailUrl } from '../lib/youtube';
 import { useSEO } from '../hooks/useSEO';
 import { JsonLd } from '../components/JsonLd';
 import type { Collection, ContentCardItem } from '../types';
@@ -13,24 +14,33 @@ function episodeToCardItem(episode: {
   number: number;
   title: string;
   thumbnail: string | null;
+  youtubeId?: string | null;
 }): ContentCardItem {
   return {
     id: episode.id,
     title: `Ep. ${episode.number}: ${episode.title}`,
-    thumbnail: episode.thumbnail ? getThumbnailUrl(episode.thumbnail) : null,
+    thumbnail: episode.thumbnail
+      ? getThumbnailUrl(episode.thumbnail)
+      : episode.youtubeId
+        ? youtubeThumbnailUrl(episode.youtubeId)
+        : null,
     href: `/watch/episode/${episode.id}`,
     type: 'episode',
   };
 }
 
 function videoToCardItem(
-  video: { id: string; title: string; thumbnail: string | null },
+  video: { id: string; title: string; thumbnail: string | null; youtubeId?: string | null },
   cardType: ContentCardItem['type'] = 'film'
 ): ContentCardItem {
   return {
     id: video.id,
     title: video.title,
-    thumbnail: video.thumbnail ? getThumbnailUrl(video.thumbnail) : null,
+    thumbnail: video.thumbnail
+      ? getThumbnailUrl(video.thumbnail)
+      : video.youtubeId
+        ? youtubeThumbnailUrl(video.youtubeId)
+        : null,
     href: `/watch/video/${video.id}`,
     type: cardType,
   };
@@ -199,7 +209,9 @@ function SeriesContent({ collection }: { collection: Collection }) {
   return (
     <div className="pb-16">
       {seasons.map((season) => {
-        const episodes = season.episodes ?? [];
+        // Ascending by episode number (the backend already sorts; this guards
+        // the render regardless of API response order).
+        const episodes = [...(season.episodes ?? [])].sort((a, b) => a.number - b.number);
         const seasonTitle =
           season.title
             ? `Temporada ${season.number}: ${season.title}`

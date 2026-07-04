@@ -22,6 +22,16 @@ export const YOUTUBE_IFRAME_ALLOW =
 
 export const YOUTUBE_IFRAME_REFERRER_POLICY = 'strict-origin-when-cross-origin';
 
+/**
+ * YouTube-hosted thumbnail for a video ID. `hqdefault.jpg` always exists for
+ * public videos (unlike `maxresdefault`, which 404s for some), so it's a safe
+ * fallback when an episode/video has no uploaded thumbnail. Rendered with
+ * object-fit: cover in a 16:9 box, which crops its letterbox bars.
+ */
+export function youtubeThumbnailUrl(videoId: string): string {
+  return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+}
+
 /** Privacy-enhanced embed URL (youtube-nocookie reduces cookie/referrer failures). */
 export function youtubeEmbedUrl(videoId: string, params?: Record<string, string>): string {
   const query = params ? `?${new URLSearchParams(params).toString()}` : '';

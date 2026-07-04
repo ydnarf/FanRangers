@@ -59,6 +59,19 @@ collectionsRouter.get('/:id', async (req: Request, res: Response, next: NextFunc
             number: true,
             title: true,
             description: true,
+            // Include the actual episodes (ordered by number) so the public
+            // series page can list them. Without this the page only had the
+            // _count and rendered empty season rows.
+            episodes: {
+              orderBy: { number: 'asc' },
+              select: {
+                id: true,
+                number: true,
+                title: true,
+                thumbnail: true,
+                youtubeId: true,
+              },
+            },
             _count: {
               select: { episodes: true },
             },
@@ -71,6 +84,7 @@ collectionsRouter.get('/:id', async (req: Request, res: Response, next: NextFunc
             title: true,
             synopsis: true,
             thumbnail: true,
+            youtubeId: true,
           },
         },
       },

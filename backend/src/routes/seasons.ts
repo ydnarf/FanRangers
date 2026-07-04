@@ -33,6 +33,7 @@ seasonsRouter.get('/:id', async (req: Request, res: Response, next: NextFunction
             title: true,
             synopsis: true,
             thumbnail: true,
+            youtubeId: true,
             duration: true,
           },
         },

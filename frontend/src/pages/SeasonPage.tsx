@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import ContentCard from '../components/ContentCard';
 import SkeletonCard from '../components/SkeletonCard';
 import { getSeason, getThumbnailUrl } from '../lib/api';
+import { youtubeThumbnailUrl } from '../lib/youtube';
 import { useSEO } from '../hooks/useSEO';
 import type { Season, ContentCardItem } from '../types';
 
@@ -11,11 +12,16 @@ function episodeToCardItem(episode: {
   number: number;
   title: string;
   thumbnail: string | null;
+  youtubeId?: string | null;
 }): ContentCardItem {
   return {
     id: episode.id,
     title: `Ep. ${episode.number}: ${episode.title}`,
-    thumbnail: episode.thumbnail ? getThumbnailUrl(episode.thumbnail) : null,
+    thumbnail: episode.thumbnail
+      ? getThumbnailUrl(episode.thumbnail)
+      : episode.youtubeId
+        ? youtubeThumbnailUrl(episode.youtubeId)
+        : null,
     href: `/watch/episode/${episode.id}`,
     type: 'episode',
   };
