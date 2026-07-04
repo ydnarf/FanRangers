@@ -1,6 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { prisma } from '../../lib/prisma';
 import { AppError } from '../../middleware/errors';
+import { uniqueConstraintError } from '../../lib/validation';
 
 export const adminSeasonsRouter = Router();
 
@@ -61,7 +62,11 @@ adminSeasonsRouter.post('/', async (req: Request, res: Response, next: NextFunct
 
     res.status(201).json(season);
   } catch (err) {
-    next(err);
+    const dup = uniqueConstraintError(
+      err,
+      'Ya existe una temporada con ese número en esta colección. Usa un número distinto.',
+    );
+    next(dup ?? err);
   }
 });
 
@@ -93,7 +98,11 @@ adminSeasonsRouter.put('/:id', async (req: Request, res: Response, next: NextFun
 
     res.json(season);
   } catch (err) {
-    next(err);
+    const dup = uniqueConstraintError(
+      err,
+      'Ya existe una temporada con ese número en esta colección. Usa un número distinto.',
+    );
+    next(dup ?? err);
   }
 });
 

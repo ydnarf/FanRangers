@@ -51,7 +51,20 @@ export default function AdminEpisodeEdit() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isNew) return;
+    if (isNew) {
+      // Prefill the next available number so a fresh episode doesn't collide
+      // with an existing one (the seasonId+number pair is unique — a duplicate
+      // is rejected by the backend). Leaves the field blank if the lookup fails.
+      adminGetEpisodes(seasonId!)
+        .then((eps) => {
+          const next = eps.reduce((max, e) => Math.max(max, e.number), 0) + 1;
+          setForm((prev) => ({ ...prev, number: String(next) }));
+        })
+        .catch(() => {
+          /* keep the field empty; the admin can type a number manually */
+        });
+      return;
+    }
     adminGetEpisodes(seasonId!)
       .then((eps) => {
         const ep = eps.find((e) => e.id === id);

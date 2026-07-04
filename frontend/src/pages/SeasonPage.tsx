@@ -116,7 +116,10 @@ export default function SeasonPage() {
 }
 
 function SeasonContent({ season, displayLabel }: { season: Season; displayLabel: string }) {
-  const episodes = season.episodes ?? [];
+  // Always render episodes in ascending order by their number. The backend
+  // already sorts, but sorting here too guarantees the order regardless of the
+  // API response order (belt-and-suspenders with the admin list).
+  const episodes = [...(season.episodes ?? [])].sort((a, b) => a.number - b.number);
 
   return (
     <>

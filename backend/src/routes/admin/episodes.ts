@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { prisma } from '../../lib/prisma';
 import { AppError } from '../../middleware/errors';
-import { validateMaxLengths, isSafeHttpsUrl } from '../../lib/validation';
+import { validateMaxLengths, isSafeHttpsUrl, uniqueConstraintError } from '../../lib/validation';
 
 export const adminEpisodesRouter = Router();
 
@@ -97,7 +97,11 @@ adminEpisodesRouter.post('/', async (req: Request, res: Response, next: NextFunc
 
     res.status(201).json(episode);
   } catch (err) {
-    next(err);
+    const dup = uniqueConstraintError(
+      err,
+      'Ya existe un episodio con ese número en esta temporada. Usa un número distinto.',
+    );
+    next(dup ?? err);
   }
 });
 
@@ -161,7 +165,11 @@ adminEpisodesRouter.put('/:id', async (req: Request, res: Response, next: NextFu
 
     res.json(episode);
   } catch (err) {
-    next(err);
+    const dup = uniqueConstraintError(
+      err,
+      'Ya existe un episodio con ese número en esta temporada. Usa un número distinto.',
+    );
+    next(dup ?? err);
   }
 });
 

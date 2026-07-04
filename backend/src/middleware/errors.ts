@@ -21,12 +21,13 @@ export function errorHandler(
 
   const status = err.statusCode ?? 500;
 
+  // 4xx are client errors whose messages are curated and safe to surface
+  // (validation failures, "not found", duplicate-number conflicts, …) — showing
+  // them lets the user correct their input. 5xx may carry internal details, so
+  // they stay masked in production and only reveal the message in development.
   let message: string;
-  if (process.env['NODE_ENV'] === 'production') {
-    if (status >= 500) message = 'Internal server error';
-    else if (status === 404) message = 'Not found';
-    else if (status === 400) message = 'Bad request';
-    else message = 'Request error';
+  if (status >= 500) {
+    message = process.env['NODE_ENV'] === 'production' ? 'Internal server error' : err.message;
   } else {
     message = err.message;
   }

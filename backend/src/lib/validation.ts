@@ -34,3 +34,27 @@ export function validateMaxLengths(
   }
   return null;
 }
+
+/**
+ * Detects a Prisma unique-constraint violation (error code P2002) and, when
+ * found, returns a friendly AppError (409 Conflict) carrying the given message.
+ * Returns null for any other error so callers can do `next(dup ?? err)` and let
+ * unrelated failures fall through to the generic error handler.
+ *
+ * Without this, a duplicate (seasonId, number) / (collectionId, number) insert
+ * surfaces as an opaque 500 ("Internal server error" in production) and the row
+ * silently fails to save.
+ */
+export function uniqueConstraintError(err: unknown, message: string): AppError | null {
+  if (
+    err !== null &&
+    typeof err === 'object' &&
+    'code' in err &&
+    (err as { code?: unknown }).code === 'P2002'
+  ) {
+    const e: AppError = new Error(message);
+    e.statusCode = 409;
+    return e;
+  }
+  return null;
+}
